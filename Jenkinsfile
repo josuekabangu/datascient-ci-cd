@@ -5,7 +5,7 @@ pipeline {
         stage('Deploy to Production') {
             when {
                 expression { 
-                    return env.BRANCH_NAME == 'develop' || env.CHANGE_TARGET == 'master'
+                    return env.BRANCH_NAME == 'develop'
                 }
             }
             steps {
