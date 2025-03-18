@@ -1,16 +1,18 @@
-pipeline {
-    agent any
+pipelin {
+    agent any 
 
     stages {
-        stage('Deploy to Production') {
-            when {
-                expression { 
-                    return env.BRANCH_NAME == 'develop'
-                }
-            }
+        stage('Build') {
             steps {
-                echo "Déploiement sur production"
-                // Ajouter ici les étapes de déploiement
+                script {
+                    //Exemple d'utilisation de BRANCH_NAME
+                    if (env.BRANCH_NAME == 'main') {
+                        echo "Déploiement sur production"
+                        // Ajouter des étapes pour déployer sur production
+                    } else {
+                        echo "Pas de déploiement sur cette branche : ${env.BRANCH_NAME}"
+                    }
+                }
             }
         }
     }
