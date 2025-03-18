@@ -17,13 +17,13 @@ pipeline {
                     if (env.BRANCH_NAME == 'develop') {
                         KUBE_NAMESPACE = 'dev'
                         echo "Déploiement dans le namespace : ${KUBE_NAMESPACE}"
-                    } if (env.BRANCH_NAME == 'qa') {
+                    } else if (env.BRANCH_NAME == 'qa') {
                         KUBE_NAMESPACE = 'qa'
                         echo "Déploiement dans le namespace : ${KUBE_NAMESPACE}"
-                    } if (env.BRANCH_NAME == 'staging') {
+                    } else if (env.BRANCH_NAME == 'staging') {
                         KUBE_NAMESPACE = 'staging'
                         echo "Déploiement dans le namespace : ${KUBE_NAMESPACE}"
-                    } if (env.BRANCH_NAME == 'main') {
+                    } else if (env.BRANCH_NAME == 'main') {
                         KUBE_NAMESPACE = 'prod'
                         echo "Déploiement dans le namespace : ${KUBE_NAMESPACE}"
                     } else {
