@@ -34,39 +34,56 @@ pipeline {
             }
         }
 
-        // Étape 2 : Vérification de la version Docker Compose (facultatif)
-        stage('Vérification de Docker Compose') {
+        // Étape 2 : Vérification de Docker et Docker Compose (facultatif)
+        stage('Vérification de Docker') {
             steps {
-                sh 'docker-compose --version'
-                sh 'docker --version'
+                sh 'docker --version'  // Vérifier la version de Docker
             }
         }
 
-        // Étape 3 : Construire les images Docker
-        stage('Construction des images Docker') {
+        // Étape 3 : Construire l'image Docker à partir du Dockerfile
+        stage('Construction de l\'image Docker') {
             steps {
                 script {
-                    echo "Construction des images Docker avec docker-compose..."
+                    echo "Construction de l'image Docker avec le Dockerfile..."
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASS')]) {
                         sh '''
                             echo "Connexion à Docker Hub..."
                             docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASS
-                            echo "Construction des images..."
-                            docker compose build
+                            echo "Construction de l'image Docker..."
+                            docker build -t $DOCKER_HUB_USER/datascient-ci-cd:$DOCKER_TAG .
                         '''
                     }
                 }
             }
         }
 
-        // Étape 4 : Déploiement Kubernetes (facultatif)
+        // Étape 4 : Pousser l'image Docker sur Docker Hub
+        stage('Push de l\'image Docker sur Docker Hub') {
+            steps {
+                script {
+                    echo "Pousser l'image Docker sur Docker Hub..."
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_HUB_USER', passwordVariable: 'DOCKER_HUB_PASS')]) {
+                        sh '''
+                            docker push $DOCKER_HUB_USER/datascient-ci-cd:$DOCKER_TAG
+                        '''
+                    }
+                }
+            }
+        }
+
+        // Étape 5 : Déploiement Kubernetes
         stage('Déploiement Kubernetes') {
             steps {
                 script {
                     echo "Déploiement de l'application dans Kubernetes..."
                     withCredentials([kubeconfigFile(credentialsId: 'kube-config', variable: 'KUBECONFIG')]) {
                         sh '''
+                            # Appliquer la configuration Kubernetes pour déployer l'application
                             kubectl apply -f deployment.yaml --namespace=${KUBE_NAMESPACE}
+                            
+                            # Mettre à jour le déploiement avec la nouvelle image Docker
+                            kubectl set image deployment/datascient-ci-cd datascient-ci-cd=$DOCKER_HUB_USER/datascient-ci-cd:$DOCKER_TAG --namespace=${KUBE_NAMESPACE}
                         '''
                     }
                 }
